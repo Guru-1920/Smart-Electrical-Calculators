@@ -170,7 +170,7 @@ const LoadCalculator = () => {
   };
   
 
-  return (
+    return (
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-3xl font-semibold mb-6 text-center text-blue-700">
         Smart Load Calculator
@@ -300,9 +300,14 @@ const LoadCalculator = () => {
           </div>
 
           {/* Bar Chart Section */}
+<<<<<<< HEAD
           {/* Bar Chart Section */}
 <div className="flex justify-center items-center mb-8">
   <div className="w-full max-w-xl h-[300px]">
+=======
+          <div className="flex justify-center items-center mb-8">
+  <div className="w-full max-w-xl h-72">
+>>>>>>> 81078eb282156a7b59705558bc8dc98c0b46724f
     <Bar data={barData} options={barOptions} />
   </div>
 </div>
