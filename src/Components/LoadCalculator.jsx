@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import { saveAs } from "file-saver";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
@@ -23,7 +30,7 @@ const LoadCalculator = () => {
   const [appliance, setAppliance] = useState("");
   const [wattage, setWattage] = useState("");
   const [hoursPerDay, setHoursPerDay] = useState("");
-  const [costPerKWh, setCostPerKWh] = useState(0.2); // default cost
+  const [costPerKWh, setCostPerKWh] = useState(0.2);
   const [appliances, setAppliances] = useState(() => {
     const stored = localStorage.getItem("appliances");
     return stored ? JSON.parse(stored) : [];
@@ -34,28 +41,35 @@ const LoadCalculator = () => {
   }, [appliances]);
 
   const handleCalculate = () => {
-    if (!appliance || !wattage || !hoursPerDay) return;
+    if (!appliance || !wattage || !hoursPerDay) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
     const watt = parseFloat(wattage);
     const hours = parseFloat(hoursPerDay);
+    const costRate = parseFloat(costPerKWh);
+
+    if (isNaN(watt) || isNaN(hours) || isNaN(costRate)) {
+      alert("Please enter valid numerical values.");
+      return;
+    }
 
     const energyKWh = (watt * hours) / 1000;
-    const cost = energyKWh * parseFloat(costPerKWh);
+    const cost = energyKWh * costRate;
 
-    const existing = appliances.find((item) => item.appliance === appliance);
+    const existingIndex = appliances.findIndex((item) => item.appliance === appliance);
 
-    if (existing) {
-      const updated = appliances.map((item) =>
-        item.appliance === appliance
-          ? {
-              ...item,
-              wattage: item.wattage + watt,
-              hoursPerDay: item.hoursPerDay + hours,
-              energyKWh: item.energyKWh + energyKWh,
-              cost: item.cost + cost,
-            }
-          : item
-      );
-      setAppliances(updated);
+    if (existingIndex !== -1) {
+      const updatedAppliances = [...appliances];
+      updatedAppliances[existingIndex] = {
+        ...updatedAppliances[existingIndex],
+        wattage: updatedAppliances[existingIndex].wattage + watt,
+        hoursPerDay: updatedAppliances[existingIndex].hoursPerDay + hours,
+        energyKWh: updatedAppliances[existingIndex].energyKWh + energyKWh,
+        cost: updatedAppliances[existingIndex].cost + cost,
+      };
+      setAppliances(updatedAppliances);
     } else {
       setAppliances([
         ...appliances,
@@ -69,19 +83,26 @@ const LoadCalculator = () => {
   };
 
   const handleReset = () => {
-    setAppliances([]);
-    localStorage.removeItem("appliances");
+    if (window.confirm("Are you sure you want to reset all data?")) {
+      setAppliances([]);
+      localStorage.removeItem("appliances");
+    }
   };
 
   const handleExport = () => {
+    if (appliances.length === 0) {
+      alert("No data to export.");
+      return;
+    }
+
     const csv = [
       ["Appliance", "Wattage", "Hours/Day", "Energy (kWh)", "Cost ($)"],
       ...appliances.map((a) => [
         a.appliance,
         a.wattage,
         a.hoursPerDay,
-        a.energyKWh ? a.energyKWh.toFixed(2) : "0.00",
-        a.cost ? a.cost.toFixed(2) : "0.00",
+        a.energyKWh.toFixed(2),
+        a.cost.toFixed(2),
       ]),
     ]
       .map((row) => row.join(","))
@@ -91,10 +112,7 @@ const LoadCalculator = () => {
     saveAs(blob, "energy_data.csv");
   };
 
-  const totalCost = appliances.reduce(
-    (sum, a) => sum + (a.cost ? a.cost : 0),
-    0
-  );
+  const totalCost = appliances.reduce((sum, a) => sum + a.cost, 0);
 
   const barData = {
     labels: appliances.map((a) => a.appliance),
@@ -108,6 +126,49 @@ const LoadCalculator = () => {
       },
     ],
   };
+  
+  const barOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top",
+        labels: {
+          color: "#333",
+          font: {
+            size: 12,
+          },
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: "#333",
+          precision: 0,
+          font: {
+            size: 12,
+          },
+        },
+        grid: {
+          color: "#e5e7eb",
+        },
+      },
+      x: {
+        ticks: {
+          color: "#333",
+          font: {
+            size: 12,
+          },
+        },
+        grid: {
+          display: false,
+        },
+      },
+    },
+  };
+  
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -118,8 +179,11 @@ const LoadCalculator = () => {
       {/* Form Layout */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div>
-          <label className="block mb-1 text-gray-600">Appliance</label>
+          <label htmlFor="appliance" className="block mb-1 text-gray-600">
+            Appliance
+          </label>
           <select
+            id="appliance"
             className="w-full border p-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={appliance}
             onChange={(e) => setAppliance(e.target.value)}
@@ -134,9 +198,13 @@ const LoadCalculator = () => {
         </div>
 
         <div>
-          <label className="block mb-1 text-gray-600">Wattage (W)</label>
+          <label htmlFor="wattage" className="block mb-1 text-gray-600">
+            Wattage (W)
+          </label>
           <input
+            id="wattage"
             type="number"
+            min="0"
             className="w-full border p-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={wattage}
             onChange={(e) => setWattage(e.target.value)}
@@ -144,9 +212,13 @@ const LoadCalculator = () => {
         </div>
 
         <div>
-          <label className="block mb-1 text-gray-600">Hours/Day</label>
+          <label htmlFor="hoursPerDay" className="block mb-1 text-gray-600">
+            Hours/Day
+          </label>
           <input
+            id="hoursPerDay"
             type="number"
+            min="0"
             className="w-full border p-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={hoursPerDay}
             onChange={(e) => setHoursPerDay(e.target.value)}
@@ -154,10 +226,14 @@ const LoadCalculator = () => {
         </div>
 
         <div>
-          <label className="block mb-1 text-gray-600">Cost per kWh ($)</label>
+          <label htmlFor="costPerKWh" className="block mb-1 text-gray-600">
+            Cost per kWh ($)
+          </label>
           <input
+            id="costPerKWh"
             type="number"
             step="0.01"
+            min="0"
             className="w-full border p-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={costPerKWh}
             onChange={(e) => setCostPerKWh(e.target.value)}
@@ -208,10 +284,10 @@ const LoadCalculator = () => {
                     <td className="p-2 border">{a.wattage}</td>
                     <td className="p-2 border">{a.hoursPerDay}</td>
                     <td className="p-2 border">
-                      {a.energyKWh ? a.energyKWh.toFixed(2) : "0.00"}
+                      {a.energyKWh.toFixed(2)}
                     </td>
                     <td className="p-2 border">
-                      {a.cost ? a.cost.toFixed(2) : "0.00"}
+                      {a.cost.toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -224,11 +300,13 @@ const LoadCalculator = () => {
           </div>
 
           {/* Bar Chart Section */}
-          <div className="flex justify-center items-center mb-8">
-            <div className="w-full max-w-xl">
-              <Bar data={barData} />
-            </div>
-          </div>
+          {/* Bar Chart Section */}
+<div className="flex justify-center items-center mb-8">
+  <div className="w-full max-w-xl h-[300px]">
+    <Bar data={barData} options={barOptions} />
+  </div>
+</div>
+
         </>
       )}
     </div>
