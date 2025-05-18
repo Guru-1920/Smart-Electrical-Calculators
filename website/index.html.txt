@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Smart Load Calculator Website</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to the CSS file -->
+</head>
+<body>
+    <header>
+        <h1>Welcome to My Smart Load Calculator Website</h1>
+        <p>Explore different tools for electricians, engineers, and homeowners.</p>
+    </header>
+
+    <section id="apps">
+        <h2>Available Tools:</h2>
+        <ul>
+            <li><a href="apps/load_calculator/index.html" target="_blank">Smart Load Calculator</a></li>
+            <!-- Add more tools here -->
+        </ul>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 My Smart Load Calculator Website</p>
+    </footer>
+
+    <script src="scripts.js"></script> <!-- Link to the JavaScript file -->
+</body>
+</html>

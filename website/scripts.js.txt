@@ -1,0 +1,2 @@
+// You can add interactivity for your website here later
+console.log("Website loaded successfully.");
