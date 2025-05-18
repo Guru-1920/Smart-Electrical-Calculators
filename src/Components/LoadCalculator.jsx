@@ -114,18 +114,21 @@ const LoadCalculator = () => {
 
   const totalCost = appliances.reduce((sum, a) => sum + a.cost, 0);
 
-  const barData = {
-    labels: appliances.map((a) => a.appliance),
-    datasets: [
-      {
-        label: "Energy Consumption (kWh)",
-        data: appliances.map((a) => a.energyKWh),
-        backgroundColor: "#36A2EB",
-        borderColor: "#36A2EB",
-        borderWidth: 1,
-      },
-    ],
-  };
+  const barOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    y: {
+      beginAtZero: true,
+    },
+  },
+  plugins: {
+    legend: {
+      position: "top",
+    },
+  },
+};
+
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -258,10 +261,11 @@ const LoadCalculator = () => {
 
           {/* Bar Chart Section */}
           <div className="flex justify-center items-center mb-8">
-            <div className="w-full max-w-xl">
-              <Bar data={barData} />
-            </div>
-          </div>
+  <div className="w-full max-w-xl h-72">
+    <Bar data={barData} options={barOptions} />
+  </div>
+</div>
+
         </>
       )}
     </div>
